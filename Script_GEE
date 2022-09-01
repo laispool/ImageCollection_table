@@ -1,0 +1,65 @@
+// Create the geometry. You can use this website to do so: https://geojson.io/#map=2/20.0/0.0 
+
+// You can change the final data to match the present day
+
+var geometry = ee.Geometry.Polygon(
+          [[[-48.81397247314453,-26.3201906569428],
+            [-48.71440887451172,-26.3201906569428],
+            [-48.71440887451172,-26.211202857836913],
+            [-48.81397247314453,-26.211202857836913],
+            [-48.81397247314453,-26.3201906569428]]]);
+Map.setCenter(-48.76007080078124,-26.263862280111095, 11);
+
+// Creating the collections with filters
+
+var L5coll = ee.ImageCollection('LANDSAT/LT05/C02/T1_L2') // Landsat 5  - Surface Reflectance
+  .filter(ee.Filter.lt('CLOUD_COVER',20))//20% max of cloud cover
+  .select(['SR_B4','SR_B3', 'SR_B2', 'SR_B1']) // true color + NIR
+  .filterDate('1984-03-16', '2012-05-05') // available date 
+  .filterBounds(geometry);
+print('L5 image list: ',L5coll);
+
+
+var L7coll = ee.ImageCollection('LANDSAT/LE07/C02/T1_L2') // Landsat 7 - Surface Reflectance
+  .filter(ee.Filter.lt('CLOUD_COVER',20)) //20% max of cloud cover
+  .select(['SR_B4','SR_B3', 'SR_B2', 'SR_B1'])// true color + NIR
+  .filterDate('1999-05-28', '2022-08-01') // available date
+  .filterBounds(geometry); 
+print('L7 image list: ', L7coll);
+
+var L8coll = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2') // Landsat 8 - Surface Reflectance
+  .filter(ee.Filter.lt('CLOUD_COVER',20))//20% max of cloud cover
+  .filterDate('2013-03-18', '2022-08-19') // available date
+  .filterBounds(geometry)
+  .select(['SR_B5','SR_B4', 'SR_B3', 'SR_B2']);// true color + NIR
+print('L8 image list: ',L8coll);
+
+var L9coll = ee.ImageCollection('LANDSAT/LC09/C02/T1_L2') // Landsat 9 - Surface Reflectance
+  .filter(ee.Filter.lt('CLOUD_COVER',20)) //20% max of cloud cover
+  .filterDate('2021-10-31', '2022-08-24') // available date
+  .filterBounds(geometry)
+  .select(['SR_B5','SR_B4', 'SR_B3', 'SR_B2']);// true color + NIR
+print('L9 image list: ',L9coll);
+
+var S2coll = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED') // Sentinel 2 - Surface Reflectance
+  .filter(ee.Filter.lt('CLOUD_COVERAGE_ASSESSMENT',20)) //20% max of cloud cover
+  .filterDate('2017-03-28', '2022-08-31') // available date
+  .filterBounds(geometry)
+  .select(['B8','B4', 'B3', 'B2']);// true color + NIR
+print('S2 image list: ',S2coll);
+
+// Merge the four image collections (Landsat).
+var icMerged1 = L5coll.merge(L8coll);
+var icMerged2 = icMerged1.merge(L9coll);
+var icMerged3 = icMerged2.merge(S2coll);
+
+// Export the image sample feature collection to Drive as a CSV file.
+Export.table.toDrive({
+  collection: icMerged3,
+  description: 'LandsatCollection',
+});
+// Export the image sample feature collection to Drive as a CSV file.
+Export.table.toDrive({
+  collection: S2coll,
+  description: 'SentinelCollection',
+});
