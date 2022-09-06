@@ -8,7 +8,7 @@ var geometry = ee.Geometry.Polygon(
             [-48.71440887451172,-26.211202857836913],
             [-48.81397247314453,-26.211202857836913],
             [-48.81397247314453,-26.3201906569428]]]);
-Map.setCenter(-48.76007080078124,-26.263862280111095, 11);
+Map.centerObject(geometry, 11);
 
 // Creating the collections with filters
 
@@ -49,13 +49,11 @@ var S2coll = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED') // Sentinel 2 - S
 print('S2 image list: ',S2coll);
 
 // Merge the four image collections (Landsat).
-var icMerged1 = L5coll.merge(L8coll);
-var icMerged2 = icMerged1.merge(L9coll);
-var icMerged3 = icMerged2.merge(S2coll);
+var icMerged = L5coll.merge(L7coll).merge(L8coll).merge(L9coll);
 
 // Export the image sample feature collection to Drive as a CSV file.
 Export.table.toDrive({
-  collection: icMerged3,
+  collection: icMerged,
   description: 'LandsatCollection',
 });
 // Export the image sample feature collection to Drive as a CSV file.
